@@ -1,0 +1,1 @@
+This is a startup file for credentials-manager
