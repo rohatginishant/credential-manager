@@ -1,6 +1,0 @@
-<com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
-  <scope>GLOBAL</scope>
-  <id>pycharm</id>
-  <username>ad</username>
-  <password>admin2</password>
-</com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
