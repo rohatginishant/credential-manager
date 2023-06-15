@@ -3,10 +3,7 @@ import tkinter as tk
 from tkinter import *
 from PIL import ImageTk, Image
 import json
-
-
-with open("cred.json", "r") as json_file:
-    data = json.load(json_file)
+from writejson import data
 
 
 def all():
@@ -47,6 +44,7 @@ new_private_key = tk.StringVar()
 new_id_assign = tk.IntVar()
 new_id_assign.set(0)
 new_id.set("")
+
 
 def display():
     for widget in default_kind_frame.winfo_children():
@@ -169,6 +167,39 @@ def delete_submit():
             jenkins_auth_password = item["auth__password"]
             obj = Credentials(jenkins_url, jenkins_auth_username, jenkins_auth_password)
             print(obj.delete(del_id.get()))
+
+def print_credentials():
+
+    for widget in new_id_frame.winfo_children():
+        widget.destroy()
+    for widget in default_kind_frame.winfo_children():
+        widget.destroy()
+
+    for widget in kind_update_frame.winfo_children():
+        widget.destroy()
+
+    for widget in id_update_frame.winfo_children():
+        widget.destroy()
+
+    for widget in details_frame.winfo_children():
+        widget.destroy()
+
+    int = 0
+    for jenkins_name, item in data.items():
+        if item["select"] == 1:
+            jenkins_url = item["jenkins__url"]
+            jenkins_auth_username = item["auth__username"]
+            jenkins_auth_password = item["auth__password"]
+            crumb_url = item["crumbIssuer"]
+            obj = Credentials(jenkins_url, jenkins_auth_username, jenkins_auth_password)
+            response = obj.get_credentials()
+            credentials = response.json()["credentials"]
+            new_label = tk.Label(details_frame,text=f" Credentials for {jenkins_name}: ")
+            new_label.pack(side="top")
+            for i in credentials:
+
+                label = tk.Label(details_frame,text = f"Id : {i['id']}, Description : {i['description']}, Type : {i['typeName']}")
+                label.pack(side="top",padx=(0,10))
 
 
 def create_frame():
@@ -389,17 +420,19 @@ label.pack()
 create_button = tk.Button(menu_frame, text="Create", command = kind_frame)
 create_button.pack(side="left", padx=(0, 10))  # Pack : put in window ,  place the components where they should be
 
+view_button = tk.Button(menu_frame, text="View", command = print_credentials)
+view_button.pack(side="left", padx=(0, 10))
+
 manage_button = tk.Button(menu_frame, text="Manage", command = manage_kind_frame)
 manage_button.pack(side="left", padx=(0, 10))
-
 
 del_button = tk.Button(menu_frame, text="Delete", command=del_frame)
 del_button.pack(side="left", padx=(0, 10))
 
-kind_update_frame = tk.Frame(root, height=50, width=200, pady=10, highlightbackground="red", highlightthickness=2)
+kind_update_frame = tk.Frame(root, height=50, width=200, pady=10)
 kind_update_frame.pack()
 
-default_kind_frame = tk.Frame(root, height=50, width=200, pady=10, highlightbackground="blue", highlightthickness=2)
+default_kind_frame = tk.Frame(root, height=50, width=200, pady=10)
 default_kind_frame.pack()
 
 new_id_frame = tk.Frame(root, height=50, width=200, pady=10)
@@ -408,7 +441,12 @@ new_id_frame.pack()
 id_update_frame = tk.Frame(root, height=50, width=200, pady=10)
 id_update_frame.pack()
 
-details_frame = tk.Frame(root, height=400, width=200, pady=10,highlightbackground="blue", highlightthickness=2)
-details_frame.pack()
+details_frame = tk.Frame(root, height=100, width=50)
+details_frame.pack(expand=False)
+
+
+
+# q_button = tk.Button(root, text="Quit", command=quit)
+# q_button.pack(side="bottom", padx=(0, 10))
 
 root.mainloop()

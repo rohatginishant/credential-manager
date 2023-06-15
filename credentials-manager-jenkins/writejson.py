@@ -6,8 +6,6 @@ ssm = boto3.client('ssm')
 
 jenkins1_token = ssm.get_parameter(Name='/jenkins1', WithDecryption=True)
 jenkins2_token = ssm.get_parameter(Name='/jenkins2', WithDecryption=True)
-print(jenkins1_token['Parameter']['Value'])
-print(jenkins2_token['Parameter']['Value'])
 
 # jenkins_url = 'http://44.212.71.109:8080/manage/credentials/store/system/domain/_/'
 # jenkins_auth_username = 'admin'

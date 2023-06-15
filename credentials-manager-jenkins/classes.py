@@ -1,5 +1,11 @@
 import requests
 import xml.etree.ElementTree as ET
+import urllib.parse
+import json
+from writejson import data
+
+
+
 
 
 class Credentials:
@@ -16,30 +22,43 @@ class Credentials:
         crumb = jenkins_crumb.json()["crumb"]
         # print(f"Jenkins crumb data = {jenkins_crumb.json()}")
 
-        Headers = {
-            'Content-Type': 'application/xml',
+        Head = {
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Jenkins_Crumb': crumb
         }
 
+        username_set = username
+        id_set = id
+        password_set = password
 
-        data = f'''
-        <com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
-        <scope>GLOBAL</scope>
-        <id>{id}</id>
-        <username>{username}</username>
-        <password>{password}</password>
-        </com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl>
-    
-        '''
-        response = requests.post(jenkins_url_createfunction, auth=(self.auth_username, self.auth_token),
-                                 headers=Headers,
-                                 data=data)
+        data = {
+            "": "0",
+            "credentials": {
+                "scope": "GLOBAL",
+                "username": username_set,
+                "usernameSecret": "false",
+                "password": password_set,
+                "$redact": "password",
+                "id": id_set,
+                "description": "description",
+                "stapler-class": "com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl",
+                "$class": "com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl"
+            }
+        }
 
+        data = json.dumps(data)
+
+        response = requests.post(
+            jenkins_url_createfunction,
+            auth = (self.auth_username, self.auth_token),
+            headers = Head,
+            data = {'json': data}
+        )
         if response.status_code == 200:
             print("Credentials created ")
             return "hello , you have created username-password successfully !!! "
 
-    def create_ssh_with_private_key(self, id, description,username, privatekey,usernameSecret, crumb_url):
+    def create_ssh_with_private_key(self, id, description, username, privatekey, usernameSecret, crumb_url):
         jenkins_url_createfunction = self.jenkins_url + 'createCredentials'
         jenkins_crumb = requests.get(crumb_url)
         crumb = jenkins_crumb.json()["crumb"]
@@ -48,7 +67,6 @@ class Credentials:
             'Content-Type': 'application/xml',
             'Jenkins_Crumb': crumb
         }
-
 
         data = f'''
         <com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey plugin="ssh-credentials@305.v8f4381501156">
@@ -66,13 +84,12 @@ class Credentials:
 
         '''
         response = requests.post(jenkins_url_createfunction, auth=(self.auth_username, self.auth_token),
-                                     headers=Headers,
-                                     data=data)
+                                 headers=Headers,
+                                 data=data)
 
         if response.status_code == 200:
             print("Credentials created ")
             return "hello , you have created ssh credentials successfully !!! "
-
     def manage_username_with__password(self, id, new_id, new_name, new_pass,update):
         # id = input("Enter id : ")
         Headers = {
@@ -144,7 +161,12 @@ class Credentials:
         response3 = requests.delete(jenkins_url_deletefunction, auth=(self.auth_username, self.auth_token), headers=Headers)
         return ' Credentials Deleted '
 
-#
+    def get_credentials(self):
+
+        url = self.jenkins_url + 'api/json?tree=credentials[id,description,typeName]'
+        response = requests.get(url)
+        return response
+
 # url = 'http://44.212.71.109:8080/manage/credentials/store/system/domain/_/'
 #
 # with open('config.xml', 'r') as file:
