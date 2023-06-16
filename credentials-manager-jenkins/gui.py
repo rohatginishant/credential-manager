@@ -229,7 +229,7 @@ def create_frame():
 
         password_label = tk.Label(details_frame, text=" Enter password: ")
         password_label.pack(side="left", padx=(0, 10))  # padx = left,right , pady = top,bottom
-        password_entry = tk.Entry(details_frame, width=15, textvariable=password)
+        password_entry = tk.Entry(details_frame, width=15, textvariable=password,show="*")
         password_entry.pack(side="left", padx=(0, 10))
 
     else:
