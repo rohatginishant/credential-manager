@@ -64,28 +64,44 @@ class Credentials:
         crumb = jenkins_crumb.json()["crumb"]
 
         Headers = {
-            'Content-Type': 'application/xml',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Jenkins_Crumb': crumb
         }
 
-        data = f'''
-        <com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey plugin="ssh-credentials@305.v8f4381501156">
-        <scope>GLOBAL</scope>
-        <id>{id}</id>
-        <description>{description}</description>
-        <username>{username}</username>
-        <usernameSecret>{usernameSecret}</usernameSecret>
-        <privateKeySource class="com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource">
-        <privateKey>
-           {privatekey}
-        </privateKey>
-        </privateKeySource>
-        </com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey>
+        username_set = username
+        id_set = id
+        private_key_set = privatekey
+        description_set = description
+        usernameSecret_set = usernameSecret
 
-        '''
-        response = requests.post(jenkins_url_createfunction, auth=(self.auth_username, self.auth_token),
+        data = {
+            "": "3",
+            "credentials":{
+                "scope": "GLOBAL",
+                "id": id_set,
+                "description": description_set,
+                "username": username_set,
+                "usernameSecret": usernameSecret_set,
+                "privateKeySource":
+                    {
+                        "value": "0",
+                        "privateKey": private_key_set,
+                        "stapler-class": "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource",
+                        "$class": "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey$DirectEntryPrivateKeySource"
+                     },
+                "passphrase": "op",
+                "$redact": "passphrase",
+                "stapler-class": "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey",
+                "$class": "com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey"
+            },
+        }
+
+        data = json.dumps(data)
+
+        response = requests.post(jenkins_url_createfunction,
+                                 auth=(self.auth_username, self.auth_token),
                                  headers=Headers,
-                                 data=data)
+                                 data={'json':data})
 
         if response.status_code == 200:
             print("Credentials created ")
@@ -154,11 +170,11 @@ class Credentials:
 
     def delete(self, id):
         Headers = {
-            'Content-Type': 'application/xml'
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        jenkins_url_deletefunction = self.jenkins_url + f'credential/{id}/config.xml'
-        response3 = requests.delete(jenkins_url_deletefunction, auth=(self.auth_username, self.auth_token), headers=Headers)
+        jenkins_url_deletefunction = self.jenkins_url + f'credential/{id}/doDelete'
+        response3 = requests.post(jenkins_url_deletefunction, auth=(self.auth_username, self.auth_token), headers=Headers)
         return ' Credentials Deleted '
 
     def get_credentials(self):
